@@ -81,7 +81,6 @@ app.get("/urls", (req, res) => {
   let templateVars = { urls: urlDatabase, user };
   if (user) {
     templateVars = { urls: urlsForUser(user_id), user };
-    // res.render();
   }
   if (!user) {
     return res.send('<h2>Please login first :)</h2>');
@@ -105,13 +104,18 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:id", (req, res) => {
   const user_id = req.session.user_id;
   const user = users[user_id];
+  const id = req.params.id;
   if (!urlDatabase[req.params.id]) {
     return res.send("<h3>Invalid URL</h3>");
   }
   if (!user) {
     return res.send("<h3>Please login first :)</h3>");
   }
-  const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id].longURL, user };
+  if (id !== user.id) {
+    return res.send("<h3>This URL is not owned by you</h3>");
+  }
+  const longURL = urlDatabase[id].longURL
+  const templateVars = { id, longURL , user };
   res.render("urls_show", templateVars);
 });
 
@@ -122,7 +126,7 @@ app.post("/urls", (req, res) => {
     user,
   };
   if (!user) {
-    return res.send("Need to be login in to create new tiny URLs");
+    return res.send("Need to be logged in to create new tiny URLs");
   }
   const longURL = req.body.longURL;
   const id = generateRandomString();
@@ -160,7 +164,7 @@ app.get("/urls/:id/edit", (req, res) => {
   const user_id = req.session.user_id;
   const user = users[user_id];
   const id = req.params.id;
-  const longURL = urlDatabase[id].longUrl;
+  const longURL = urlDatabase[id].longURL;
   const templateVars = { id, longURL, user };
   res.render("urls_show", templateVars);
 });
@@ -168,7 +172,7 @@ app.get("/urls/:id/edit", (req, res) => {
 app.post("/urls/:id", (req, res) => {
   const longURL = req.body.longURL;
   const id = req.params.id;
-  urlDatabase[id].longUrl = longURL;
+  urlDatabase[id].longURL = longURL;
   res.redirect('/urls');
 });
 
