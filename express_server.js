@@ -83,7 +83,7 @@ app.get("/urls", (req, res) => {
     templateVars = { urls: urlsForUser(user_id), user };
   }
   if (!user) {
-    return res.send('<h2>Please login first :)</h2>');
+    return res.send("<h2>Please login first :) <a href='/login'>Login</a></h2>");
   }
 
   res.render("urls_index", templateVars);
@@ -109,13 +109,13 @@ app.get("/urls/:id", (req, res) => {
     return res.send("<h3>Invalid URL</h3>");
   }
   if (!user) {
-    return res.send("<h3>Please login first :)</h3>");
+    return res.send("<h2>Please login first :) <a href='/login'>Login</a></h2>");
   }
   if (id !== user.id) {
     return res.send("<h3>This URL is not owned by you</h3>");
   }
-  const longURL = urlDatabase[id].longURL
-  const templateVars = { id, longURL , user };
+  const longURL = urlDatabase[id].longURL;
+  const templateVars = { id, longURL, user };
   res.render("urls_show", templateVars);
 });
 
@@ -212,11 +212,13 @@ app.get("/register", (req, res) => {
 
 app.post("/register", (req, res) => {
   const email = req.body.email;
-  if (getUserByEmail(email, users)) {
-    res.status(400);
-    return res.send("400 Status Code: Email is in use");
-  }
   const password = req.body.password;
+  if (!email || !password) {
+    return res.send("Email/Password cannot be blank");
+  }
+  if (getUserByEmail(email, users)) {
+    return res.send("User already exists. Please login <a href='/login'>Login</a>");
+  }
   const hashedPassword = bcrypt.hashSync(password, 10);
   const id = generateRandomString();
   const user = { id, email, password: hashedPassword };
